@@ -64,7 +64,13 @@ local function driveTo()
         speed, 0, joaat(Config.TaxiModel), curTaxi.style, 5.0, 1)
     SetPedKeepTask(curTaxi.ped, true)
     SetDriverAggressiveness(curTaxi.ped, (curTaxi.style == Config.DrivingStyles.Rush) and 0.75 or 0.5)
-    SetVehicleDoorsShut(curTaxi.vehicle, false)
+
+    for i = 0, GetNumberOfVehicleDoors(curTaxi.vehicle) do
+        if GetVehicleDoorAngleRatio(curTaxi.vehicle, i) > 0.0 then
+            SetVehicleDoorsShut(curTaxi.vehicle, false)
+            break
+        end
+    end
 end
 
 local function park()
