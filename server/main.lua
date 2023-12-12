@@ -10,6 +10,14 @@ QBCore.Commands.Add('taxigo', 'Get taxi to go to waypoint', {}, false, function(
     TriggerClientEvent('citra-taxi:client:setDestination', source)
 end, 'user')
 
+QBCore.Commands.Add('taxifast', 'Tell driver to speed up', {}, false, function(source, _, _)
+    TriggerClientEvent('citra-taxi:client:speedUp', source)
+end, 'user')
+
+QBCore.Commands.Add('taxislow', 'Tell driver to slow down', {}, false, function(source, _, _)
+    TriggerClientEvent('citra-taxi:client:speedDown', source)
+end, 'user')
+
 -- Events
 RegisterNetEvent('citra-taxi:server:payFare', function(time)
     local src = source
