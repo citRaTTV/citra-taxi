@@ -235,6 +235,9 @@ local function spawnTaxi()
         if GetResourceState('qb-core') == "started" then
             TriggerEvent('QBCore:Notify', 'Taxi is on the way', 'success')
         end
+        if GetResourceState('qb-vehiclekeys') == "started" then
+            exports['qb-vehiclekeys']:addNoLockVehicles(Config.TaxiModel)
+        end
 
         driveTo()
         waitForTaxiDone()
