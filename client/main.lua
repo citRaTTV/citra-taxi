@@ -101,6 +101,11 @@ local function waitForTaxiDone()
                 local plyPed = PlayerPedId()
 
                 if inTaxi then
+                    if GetResourceState('qb-vehiclekeys') == "started" then
+                        TriggerServerEvent('qb-vehiclekeys:server:setVehLockState', curTaxi.vehicle, 1)
+                        Wait(500)
+                    end
+                    TaskLeaveVehicle(plyPed, curTaxi.vehicle, 1)
                     TriggerServerEvent('citra-taxi:server:payFare', GetGameTimer() - inTime)
                     Wait(2000)
                     wanderOff()
