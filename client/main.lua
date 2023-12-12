@@ -73,9 +73,20 @@ local function driveTo()
     end
 end
 
-local function park()
+local function park(inTaxi)
+    local speed = curTaxi.speed
     curTaxi.speed = Config.SlowdownSpeed
-    driveTo()
+
+    while speed > curTaxi.speed do
+        speed = speed - 1.0
+        TaskVehicleDriveToCoord(curTaxi.ped, curTaxi.vehicle, curTaxi.dest.x, curTaxi.dest.y, curTaxi.dest.z,
+            speed, 0, joaat(Config.TaxiModel), curTaxi.style, 5.0, 1)
+        Wait(100)
+    end
+
+    if not inTaxi then
+        StartVehicleHorn(curTaxi.vehicle, 5000, joaat("NORMAL"), false)
+    end
 end
 
 local function taxiDone()
@@ -160,19 +171,13 @@ local function waitForTaxiDone()
     end)
 
     Citizen.CreateThread(function() -- Taxi speed
-        local hasHonked = false
-
         while curTaxi.vehicle ~= 0 do
             taxiCoords = GetEntityCoords(curTaxi.vehicle)
             local dist = #(curTaxi.dest - taxiCoords)
 
-            if dist < 60.0 then
+            if dist < Config.SlowdownDist then
                 if curTaxi.speed ~= Config.SlowdownSpeed then
-                    park()
-                    if not inTaxi and dist < 20.0 and not hasHonked then
-                        StartVehicleHorn(curTaxi.vehicle, 2000, joaat("NORMAL"), false)
-                        hasHonked = true
-                    end
+                    park(inTaxi)
                 end
             else
                 local newSpeed

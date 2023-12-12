@@ -8,6 +8,7 @@ Config.DrivingStyles = { -- See https://vespura.com/fivem/drivingstyle/
 }
 Config.RushSpeedMultiplier = 1.5 -- How much faster the cab will go when rushing
 Config.SlowdownSpeed = 15 * 0.44704 -- The speed the cab will begin to pull over at
+Config.SlowdownDist = 35.0 -- How far away the cab should slow down and honk
 
 Config.Fare = {
     base = 1.0, -- Rate when entering the cab
