@@ -43,3 +43,10 @@ Config.TaxiExtras = { -- Which vehicle extras to enable / disable on the cab
 ]]--
 Config.SpeedLimitResource = '919-speedlimits'
 Config.SpeedLimitExport = 'GetSpeedLimit'
+Config.SpeedLimitZones = { -- Speeds in MPH
+    [2] = 40, -- City / main roads
+    [10] = 30, -- Slow roads
+    [64] = 25, -- Off road
+    [66] = 60, -- Freeway
+    [82] = 60, -- Freeway tunnels
+}

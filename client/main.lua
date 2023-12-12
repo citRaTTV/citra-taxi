@@ -93,7 +93,7 @@ local function taxiDone()
 end
 
 local function waitForTaxiDone()
-    local inTaxi, inTime = false, 0
+    local inTaxi, inTime, taxiCoords = false, 0, GetEntityCoords(curTaxi.vehicle)
 
     CreateThread(function() -- Enter / exit taxi
         while curTaxi.vehicle ~= 0 do
@@ -122,7 +122,7 @@ local function waitForTaxiDone()
         local lastSpoke = 0
 
         while curTaxi.vehicle ~= 0 do
-            local dist = #(curTaxi.dest - GetEntityCoords(curTaxi.vehicle))
+            local dist = #(curTaxi.dest - taxiCoords)
             local nowInTaxi = IsPedInVehicle(PlayerPedId(), curTaxi.vehicle, true)
 
             if nowInTaxi ~= inTaxi then
@@ -134,7 +134,7 @@ local function waitForTaxiDone()
                     if inTime == 0 then inTime = GetGameTimer() end
                     while dist < 15.0 do
                         Wait(100)
-                        dist = #(curTaxi.dest - GetEntityCoords(curTaxi.vehicle))
+                        dist = #(curTaxi.dest - taxiCoords)
                     end
                 end
             end
@@ -158,7 +158,8 @@ local function waitForTaxiDone()
         local hasHonked = false
 
         while curTaxi.vehicle ~= 0 do
-            local dist = #(curTaxi.dest - GetEntityCoords(curTaxi.vehicle))
+            taxiCoords = GetEntityCoords(curTaxi.vehicle)
+            local dist = #(curTaxi.dest - taxiCoords)
 
             if dist < 60.0 then
                 if curTaxi.speed ~= Config.SlowdownSpeed then
@@ -169,15 +170,18 @@ local function waitForTaxiDone()
                     end
                 end
             else
+                local newSpeed
+
                 if GetResourceState(Config.SpeedLimitResource) == "started" then
-                    local speedLimit = exports[Config.SpeedLimitResource][Config.SpeedLimitExport]()
-                    if speedLimit then
-                        local speed = speedLimit * 0.44704
-                        if speed ~= curTaxi.speed then
-                            curTaxi.speed = speed
-                            driveTo()
-                        end
-                    end
+                    newSpeed = exports[Config.SpeedLimitResource][Config.SpeedLimitExport]()
+                else
+                    local _, _, flags = GetVehicleNodeProperties(taxiCoords.x, taxiCoords.y, taxiCoords.z)
+                    newSpeed = Config.SpeedLimitZones[flags]
+                end
+
+                if newSpeed and (newSpeed / 0.44704) ~= curTaxi.speed then
+                    curTaxi.speed = newSpeed * 0.44704
+                    driveTo()
                 end
             end
 
