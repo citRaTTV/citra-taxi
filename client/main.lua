@@ -237,6 +237,7 @@ local function spawnTaxi()
         end
         if GetResourceState('qb-vehiclekeys') == "started" then
             exports['qb-vehiclekeys']:addNoLockVehicles(Config.TaxiModel)
+            TriggerServerEvent('qb-vehiclekeys:server:setVehLockState', curTaxi.vehicle, 1)
         end
 
         driveTo()
