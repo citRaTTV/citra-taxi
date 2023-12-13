@@ -189,9 +189,12 @@ local function waitForTaxiDone()
                     newSpeed = Config.SpeedLimitZones[flags]
                 end
 
-                if newSpeed and (newSpeed / 0.44704) ~= curTaxi.speed then
-                    curTaxi.speed = newSpeed * 0.44704
-                    driveTo()
+                if newSpeed then
+                    newSpeed = newSpeed * 0.44704
+                    if newSpeed ~= curTaxi.speed then
+                        curTaxi.speed = newSpeed
+                        driveTo()
+                    end
                 end
             end
 
