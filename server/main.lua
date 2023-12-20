@@ -33,10 +33,6 @@ if Config.framework == 'qb' then
 elseif Config.framework == 'esx' then
     -- Variables
     local ESX = exports["es_extended"]:getSharedObject()
-
-    -- Commands
-
-
     -- Events
     RegisterNetEvent('citra-taxi:server:payFare', function(time)
         local src = source
