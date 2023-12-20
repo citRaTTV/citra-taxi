@@ -1,6 +1,8 @@
 ## citra-taxi - An AI taxi system for FiveM / QBCore & ESX
 This resource provides an AI taxi service accessible to players via commands and (optionally) qb-radialmenu.
 
+**NOTE:** Ensure that you are running the latest version of qb-vehiclekeys if you are using QBCore.
+
 ### Usage ###
 Note: All commands are accessible via qb-radialmenu as well
 
