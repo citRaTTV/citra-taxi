@@ -5,7 +5,7 @@ Config.framework = 'esx' -- | 'esx' | 'qb' |
 Config.MinSpawnDist = 150.0 -- Min distance that a taxi will spawn from the player (in-game units)
 
 Config.DrivingStyles = { -- See https://vespura.com/fivem/drivingstyle/
-    Normal = 786875,
+    Normal = 524731,
     Rush = 787263,
 }
 Config.RushSpeedMultiplier = 1.5 -- How much faster the cab will go when rushing
