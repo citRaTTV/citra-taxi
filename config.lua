@@ -1,6 +1,6 @@
 Config = {}
 
-Config.framework = 'esx' -- | 'esx' | 'qb' |
+Config.framework = 'qb' -- | 'qb' -> qb-core | 'esx' -> es_extended |
 
 Config.MinSpawnDist = 150.0 -- Min distance that a taxi will spawn from the player (in-game units)
 
