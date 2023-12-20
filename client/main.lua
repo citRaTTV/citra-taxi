@@ -274,7 +274,6 @@ local function spawnTaxi()
 end
 
 local function setDestination()
-    print('paso 2')
     local waypoint = GetFirstBlipInfoId(8)
 
     if DoesBlipExist(waypoint) then
@@ -290,7 +289,6 @@ end
 RegisterNetEvent('citra-taxi:client:callOrCancelTaxi', function()
     if curTaxi.vehicle == 0 or not DoesEntityExist(curTaxi.vehicle) then
         spawnTaxi()
-        print('paso 1')
     else
         taxiDone()
     end
@@ -316,7 +314,6 @@ RegisterNetEvent('citra-taxi:client:setDestination', function()
 end)
 
 RegisterNetEvent('citra-taxi:client:speedUp', function()
-    print('rapido')
     if curTaxi.vehicle ~= 0 and IsPedInVehicle(PlayerPedId(), curTaxi.vehicle, true) then
         PlayPedAmbientSpeechNative(curTaxi.ped, "TAXID_SPEED_UP", "SPEECH_PARAMS_FORCE_NORMAL")
         curTaxi.style = Config.DrivingStyles.Rush
@@ -328,7 +325,6 @@ RegisterNetEvent('citra-taxi:client:speedUp', function()
 end)
 
 RegisterNetEvent('citra-taxi:client:speedDown', function()
-    print('lento')
     if curTaxi.vehicle ~= 0 and IsPedInVehicle(PlayerPedId(), curTaxi.vehicle, true) then
         PlayPedAmbientSpeechNative(curTaxi.ped, "TAXID_BEGIN_JOURNEY", "SPEECH_PARAMS_FORCE_NORMAL")
         curTaxi.style = Config.DrivingStyles.Normal
