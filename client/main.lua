@@ -210,6 +210,7 @@ local function spawnTaxi()
         local plyCoords = GetEntityCoords(PlayerPedId())
         local spawnCoords, spawnHeading = getStartingLocation(plyCoords)
         curTaxi.dest = getStoppingLocation(plyCoords)
+        curTaxi.style = Config.DrivingStyles.Normal
 
         RequestModel(model)
         while not HasModelLoaded(model) do Wait(1) end
