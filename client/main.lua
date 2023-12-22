@@ -82,7 +82,7 @@ local function park(inTaxi)
     while speed > curTaxi.speed do
         speed = speed - 1.0
         TaskVehicleDriveToCoord(curTaxi.ped, curTaxi.vehicle, curTaxi.dest.x, curTaxi.dest.y, curTaxi.dest.z,
-            speed, 0, joaat(Config.TaxiModel), curTaxi.style, 5.0, 1)
+            speed, 0, joaat(Config.TaxiModel), curTaxi.style, 10.0, 1)
         Wait(100)
     end
 
@@ -268,7 +268,7 @@ local function spawnTaxi()
             local ESX = exports["es_extended"]:getSharedObject()
             ESX.ShowNotification('Taxi is on the way', 'success')
         end
-   
+
         driveTo()
         waitForTaxiDone()
     end
