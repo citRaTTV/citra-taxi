@@ -62,8 +62,8 @@ end
 
 local function driveTo()
     local speed = (curTaxi.style == Config.DrivingStyles.Rush) and curTaxi.speed * Config.RushSpeedMultiplier or curTaxi.speed
-    TaskVehicleDriveToCoord(curTaxi.ped, curTaxi.vehicle, curTaxi.dest.x, curTaxi.dest.y, curTaxi.dest.z,
-        speed, 0, joaat(Config.TaxiModel), curTaxi.style, 5.0, 1)
+    TaskVehicleDriveToCoordLongrange(curTaxi.ped, curTaxi.vehicle, curTaxi.dest.x, curTaxi.dest.y, curTaxi.dest.z,
+        speed, curTaxi.style, 5.0)
     SetPedKeepTask(curTaxi.ped, true)
     SetDriverAggressiveness(curTaxi.ped, (curTaxi.style == Config.DrivingStyles.Rush) and 0.75 or 0.5)
 
