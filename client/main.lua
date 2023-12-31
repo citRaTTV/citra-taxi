@@ -1,6 +1,6 @@
 -- Variables
 local curTaxi = {}
-local blip
+local blip, skippedOnCab = nil, false
 local ESX = Config.framework == 'esx' and exports['es_extended']:getSharedObject() or nil
 local QBCore = Config.framework == 'qb' and exports['qb-core']:GetCoreObject() or nil
 
@@ -119,7 +119,7 @@ local function waitForTaxiDone()
 
     CreateThread(function() -- Enter / exit taxi
         while curTaxi.vehicle ~= 0 do
-            if IsControlJustPressed(0, 23) then
+            if IsControlJustPressed(0, 23) and not skippedOnCab then
                 local plyPed = PlayerPedId()
 
                 if inTaxi then
@@ -151,7 +151,7 @@ local function waitForTaxiDone()
     CreateThread(function() -- Handle menu, & driver voice lines
         local lastSpoke = 0
 
-        while curTaxi.vehicle ~= 0 do
+        while curTaxi.vehicle ~= 0 and not skippedOnCab do
             local dist = #(curTaxi.dest - taxiCoords)
             local nowInTaxi = IsPedInVehicle(PlayerPedId(), curTaxi.vehicle, true)
 
@@ -185,7 +185,7 @@ local function waitForTaxiDone()
     end)
 
     Citizen.CreateThread(function() -- Taxi speed
-        while curTaxi.vehicle ~= 0 do
+        while curTaxi.vehicle ~= 0 and not skippedOnCab do
             taxiCoords = GetEntityCoords(curTaxi.vehicle)
             local dist = #(curTaxi.dest - taxiCoords)
 
@@ -284,23 +284,28 @@ local function setDestination()
     end
 end
 
--- Events
-RegisterNetEvent('citra-taxi:client:callOrCancelTaxi', function()
-    if curTaxi.vehicle == 0 or not DoesEntityExist(curTaxi.vehicle) then
+local function callCab(cancelExisting)
+    if skippedOnCab and curTaxi.vehicle ~= 0 then -- Waits until the skipped cab is cleared
+        notify("You skipped out on your last taxi. No way we're sending another one right now!", 'error')
+    elseif curTaxi.vehicle == 0 or not DoesEntityExist(curTaxi.vehicle) then
+        skippedOnCab = false
         spawnTaxi()
-    else
+    elseif cancelExisting then
         taxiDone()
     end
+end
+
+-- Events
+RegisterNetEvent('citra-taxi:client:callOrCancelTaxi', function()
+    callCab(true)
 end)
 
 RegisterNetEvent('citra-taxi:client:callTaxi', function()
-    if curTaxi.vehicle == 0 or not DoesEntityExist(curTaxi.vehicle) then
-        spawnTaxi()
-    end
+    callCab(false)
 end)
 
 RegisterNetEvent('citra-taxi:client:cancelTaxi', function()
-    if curTaxi.vehicle ~= 0 then
+    if curTaxi.vehicle ~= 0 and not skippedOnCab then
         curTaxi.dest = getStoppingLocation(GetEntityCoords(curTaxi.vehicle))
         taxiDone()
     end
@@ -340,6 +345,7 @@ RegisterNetEvent('citra-taxi:client:alertPolice', function()
     local coords = GetEntityCoords(PlayerPedId())
     local alertMsg = 'Taxi Fare Theft'
     local taxiPed = curTaxi.ped
+    skippedOnCab = true
 
     CreateThread(function()
         for i = 1, 60 do -- Keep cab around for 30 mins
