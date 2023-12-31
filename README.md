@@ -13,3 +13,6 @@ Note: All commands are accessible via qb-radialmenu as well
 5. Control driver speed & driving aggressiveness w/ `/taxislow` or `/taxifast`
 6. Order the driver to stop early via `/taxi`
 7. Get out and payment will be deducted
+
+### Credits ###
+- ESX compat contributed by [https://github.com/Iggy-dev](Iggy-dev)

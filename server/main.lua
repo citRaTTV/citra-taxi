@@ -33,12 +33,31 @@ if Config.framework == 'qb' then
 elseif Config.framework == 'esx' then
     -- Variables
     local ESX = exports["es_extended"]:getSharedObject()
+
+    -- Commands
+    RegisterCommand('taxi', function(source)
+        TriggerClientEvent('citra-taxi:client:callOrCancelTaxi', source)
+    end)
+
+    RegisterCommand('taxigo', function(source)
+        TriggerClientEvent('citra-taxi:client:setDestination', source)
+    end)
+
+    RegisterCommand('taxifast', function(source)
+        TriggerClientEvent('citra-taxi:client:speedUp', source)
+    end)
+
+    RegisterCommand('taxislow', function(source)
+        TriggerClientEvent('citra-taxi:client:speedDown', source)
+    end)
+
     -- Events
     RegisterNetEvent('citra-taxi:server:payFare', function(time)
         local src = source
         local fare = math.ceil(Config.Fare.base + (Config.Fare.tick * (time / Config.Fare.tickTime)))
 
         if fare > 0 then
+            local xPlayer = ESX.GetPlayerFromId(src)
             xPlayer.removeMoney(fare)
             TriggerClientEvent('esx:showNotification', src, 'Fare of $' .. fare + 0.00 .. ' paid', 'info')
         end

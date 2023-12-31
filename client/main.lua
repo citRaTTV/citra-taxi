@@ -1,8 +1,19 @@
 -- Variables
 local curTaxi = {}
 local blip
+local ESX = Config.framework == 'esx' and exports['es_extended']:getSharedObject() or nil
+local QBCore = Config.framework == 'qb' and exports['qb-core']:GetCoreObject() or nil
 
 -- Functions
+local function notify(msg, type)
+    if QBCore then
+        QBCore.Functions.Notify(msg, type)
+    elseif ESX then
+        type = type == 'primary' and 'info' or type
+        ESX.ShowNotification(msg, type)
+    end
+end
+
 local function resetTaxiData()
     curTaxi = {
         vehicle = 0,
@@ -54,9 +65,7 @@ local function wanderOff()
         blip = nil
 
         resetTaxiData()
-        if Config.framework == 'qb' then
-            CreateMenu(false)
-        end
+        CreateMenu(false)
     end
 end
 
@@ -114,16 +123,13 @@ local function waitForTaxiDone()
                 local plyPed = PlayerPedId()
 
                 if inTaxi then
-                    if Config.framework == 'qb' then
-                        if GetResourceState('qb-vehiclekeys') == "started" then
-                            TriggerServerEvent('qb-vehiclekeys:server:setVehLockState', curTaxi.vehicle, 1)
-                            Wait(500)
-                        end
+                    if GetResourceState('qb-vehiclekeys') == "started" then
+                        TriggerServerEvent('qb-vehiclekeys:server:setVehLockState', curTaxi.vehicle, 1)
+                        Wait(500)
                     elseif Config.framework == 'esx' then
-                        local ESX = exports["es_extended"]:getSharedObject()
                         for i = 0, 5 do
                             SetVehicleDoorOpen(curTaxi.vehicle, i, false, true) -- will open every door from 0-5
-                          end
+                        end
                     end
 
                     TaskLeaveVehicle(plyPed, curTaxi.vehicle, 1)
@@ -153,9 +159,7 @@ local function waitForTaxiDone()
 
             if nowInTaxi ~= inTaxi then
                 inTaxi = nowInTaxi
-                if Config.framework == 'qb' then
-                    CreateMenu(inTaxi)
-                end
+                CreateMenu(inTaxi)
 
                 if inTaxi then
                     PlayPedAmbientSpeechNative(curTaxi.ped, "TAXID_WHERE_TO", "SPEECH_PARAMS_FORCE_NORMAL")
@@ -257,16 +261,11 @@ local function spawnTaxi()
         SetModelAsNoLongerNeeded(model)
 
         createBlip()
+        notify('Taxi is on the way', 'success')
 
-        if Config.framework == 'qb' then
-                TriggerEvent('QBCore:Notify', 'Taxi is on the way', 'success')
-            if GetResourceState('qb-vehiclekeys') == "started" then
-                exports['qb-vehiclekeys']:addNoLockVehicles(Config.TaxiModel)
-                TriggerServerEvent('qb-vehiclekeys:server:setVehLockState', curTaxi.vehicle, 1)
-            end
-        elseif Config.framework == 'esx' then
-            local ESX = exports["es_extended"]:getSharedObject()
-            ESX.ShowNotification('Taxi is on the way', 'success')
+        if GetResourceState('qb-vehiclekeys') == "started" then
+            exports['qb-vehiclekeys']:addNoLockVehicles(Config.TaxiModel)
+            TriggerServerEvent('qb-vehiclekeys:server:setVehLockState', curTaxi.vehicle, 1)
         end
 
         driveTo()
@@ -319,9 +318,7 @@ RegisterNetEvent('citra-taxi:client:speedUp', function()
         PlayPedAmbientSpeechNative(curTaxi.ped, "TAXID_SPEED_UP", "SPEECH_PARAMS_FORCE_NORMAL")
         curTaxi.style = Config.DrivingStyles.Rush
         driveTo()
-        if Config.framework == 'qb' then
-            CreateMenu(true, true)
-        end
+        CreateMenu(true, true)
     end
 end)
 
@@ -330,8 +327,7 @@ RegisterNetEvent('citra-taxi:client:speedDown', function()
         PlayPedAmbientSpeechNative(curTaxi.ped, "TAXID_BEGIN_JOURNEY", "SPEECH_PARAMS_FORCE_NORMAL")
         curTaxi.style = Config.DrivingStyles.Normal
         driveTo()
-        if Config.framework == 'qb' then
-            CreateMenu(true, false)
+        CreateMenu(true, false)
         end
     end
 end)
@@ -347,22 +343,3 @@ AddEventHandler('onResourceStop', function(resourceName)
         wanderOff()
     end
 end)
-
-if Config.framework == 'esx' then
-    RegisterCommand('taxi', function()
-        TriggerEvent('citra-taxi:client:callOrCancelTaxi')
-    end)
-
-    RegisterCommand('taxigo', function()
-        TriggerEvent('citra-taxi:client:setDestination')
-    end)
-
-    RegisterCommand('taxifast', function()
-        TriggerEvent('citra-taxi:client:speedUp')
-    end)
-
-    RegisterCommand('taxislow', function()
-        TriggerEvent('citra-taxi:client:speedDown')
-    end)
-
-end
