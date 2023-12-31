@@ -26,8 +26,11 @@ if Config.framework == 'qb' then
 
         if fare > 0 then
             local Player = QBCore.Functions.GetPlayer(src)
-            Player.Functions.RemoveMoney('cash', fare, 'Taxi fare')
-            TriggerClientEvent('QBCore:Notify', src, 'Fare of $' .. fare + 0.00 .. ' paid')
+            if Player.Functions.RemoveMoney('cash', fare, 'Taxi fare') then
+                TriggerClientEvent('citra-taxi:client:farePaid', src, fare)
+            else
+                TriggerClientEvent('citra-taxi:client:alertPolice', src)
+            end
         end
     end)
 elseif Config.framework == 'esx' then
@@ -59,7 +62,7 @@ elseif Config.framework == 'esx' then
         if fare > 0 then
             local xPlayer = ESX.GetPlayerFromId(src)
             xPlayer.removeMoney(fare)
-            TriggerClientEvent('esx:showNotification', src, 'Fare of $' .. fare + 0.00 .. ' paid', 'info')
+            TriggerClientEvent('citra-taxi:client:farePaid', src, fare)
         end
     end)
 end

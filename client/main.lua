@@ -134,8 +134,6 @@ local function waitForTaxiDone()
 
                     TaskLeaveVehicle(plyPed, curTaxi.vehicle, 1)
                     TriggerServerEvent('citra-taxi:server:payFare', GetGameTimer() - inTime)
-                    Wait(2000)
-                    wanderOff()
                 elseif GetVehiclePedIsTryingToEnter(plyPed) == curTaxi.vehicle then
                     ClearPedTasks(plyPed)
                     for i = 2, 1, -1 do
@@ -277,6 +275,7 @@ local function setDestination()
     local waypoint = GetFirstBlipInfoId(8)
 
     if DoesBlipExist(waypoint) then
+        if curTaxi.dest then PlayPedAmbientSpeechNative(curTaxi.ped, "TAXID_CHANGE_DEST", "SPEECH_PARAMS_FORCE_NORMAL") end
         curTaxi.dest = getStoppingLocation(GetBlipCoords(waypoint))
         driveTo()
         PlayPedAmbientSpeechNative(curTaxi.ped, "TAXID_BEGIN_JOURNEY", "SPEECH_PARAMS_FORCE_NORMAL")
@@ -328,7 +327,44 @@ RegisterNetEvent('citra-taxi:client:speedDown', function()
         curTaxi.style = Config.DrivingStyles.Normal
         driveTo()
         CreateMenu(true, false)
+    end
+end)
+
+RegisterNetEvent('citra-taxi:client:farePaid', function(fare)
+    notify('Fare of $' .. fare + 0.00 .. ' paid', 'success')
+    Wait(2000)
+    wanderOff()
+end)
+
+RegisterNetEvent('citra-taxi:client:alertPolice', function()
+    local coords = GetEntityCoords(PlayerPedId())
+    local alertMsg = 'Taxi Fare Theft'
+    local taxiPed = curTaxi.ped
+
+    CreateThread(function()
+        for i = 1, 60 do -- Keep cab around for 30 mins
+            PlayPedAmbientSpeechNative(taxiPed, "TAXID_RUN_AWAY", "SPEECH_PARAMS_FORCE_NORMAL")
+            Wait(30000)
         end
+        wanderOff()
+    end)
+
+    if GetResourceState('ps-dispatch') == 'started' then
+        exports['ps-dispatch']:CustomAlert({
+            message = alertMsg,
+            description = alertMsg,
+            icon = 'fas fa-taxi',
+            coords = coords,
+            gender = true,
+            sprite = 198,
+            color = 1,
+            scale = 1.0,
+            length = 5,
+        })
+    elseif QBCore then
+        TriggerServerEvent('police:server:policeAlert', alertMsg)
+    elseif ESX then
+        TriggerServerEvent('esx_service:notifyAllInService', alertMsg, 'police')
     end
 end)
 
