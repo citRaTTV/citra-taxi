@@ -367,6 +367,26 @@ RegisterNetEvent('citra-taxi:client:alertPolice', function()
             scale = 1.0,
             length = 5,
         })
+    elseif GetResourceState('cd_dispatch') == 'started' then
+        local data = exports['cd_dispatch']:GetPlayerInfo()
+        TriggerServerEvent('cd_dispatch:AddNotification', {
+            job_table = {'police', },
+            coords = data.coords,
+            title = 'Skipped taxi fare',
+            message = 'A '..data.sex..' just skipped on their taxi fare on '..data.street,
+            flash = 0,
+            unique_id = data.unique_id,
+            sound = 1,
+            blip = {
+                sprite = 119,
+                scale = 0.95,
+                colour = 3,
+                flashes = true,
+                text = '911 - Skipped taxi fare',
+                time = 5,
+                radius = 0,
+            }
+        })
     elseif QBCore then
         TriggerServerEvent('police:server:policeAlert', alertMsg)
     elseif ESX then
