@@ -372,7 +372,7 @@ RegisterNetEvent('citra-taxi:client:alertPolice', function()
         TriggerServerEvent('cd_dispatch:AddNotification', {
             job_table = {'police', },
             coords = data.coords,
-            title = 'Skipped taxi fare',
+            title = alertMsg,
             message = 'A '..data.sex..' just skipped on their taxi fare on '..data.street,
             flash = 0,
             unique_id = data.unique_id,
@@ -382,7 +382,7 @@ RegisterNetEvent('citra-taxi:client:alertPolice', function()
                 scale = 0.95,
                 colour = 3,
                 flashes = true,
-                text = '911 - Skipped taxi fare',
+                text = '911 - ' .. alertMsg,
                 time = 5,
                 radius = 0,
             }
