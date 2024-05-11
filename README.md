@@ -15,4 +15,4 @@ Note: All commands are accessible via qb-radialmenu as well
 7. Get out and payment will be deducted
 
 ### Credits ###
-- ESX compat contributed by [https://github.com/Iggy-dev](Iggy-dev)
+- ESX compat contributed by [Iggy-dev](https://github.com/Iggy-dev)
