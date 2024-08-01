@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'citRa'
 description 'Simple taxi script'
-version '1.0.0beta'
+version '1.0.0'
 lua54 'yes'
 
 server_scripts {
