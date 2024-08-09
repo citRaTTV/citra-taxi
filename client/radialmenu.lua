@@ -1,88 +1,85 @@
--- Variables
-local menuID
+local config = require 'shared.config'
 
--- Functions
-local function teardownMenu()
-    if menuID and GetResourceState('qb-radialmenu') == "started" then
-        exports['qb-radialmenu']:RemoveOption(menuID)
-    end
+---@class RadialMenu : OxClass
+local RadialMenu = lib.class('RadialMenu')
+
+function RadialMenu:constructor()
+    self.menuid = nil
 end
 
-function CreateMenu(inCab, isFast)
-    if GetResourceState('qb-radialmenu') ~= "started" then return end
-    teardownMenu()
+function RadialMenu:isStarted()
+    return GetResourceState('qb-radialmenu') == "started"
+end
+
+function RadialMenu:teardown()
+    if not self:isStarted() then return end
+    if self.menuid then exports['qb-radialmenu']:RemoveOption(self.menuid) end
+end
+
+function RadialMenu:create(taxi, style)
+    if not self:isStarted() then return end
+    self:teardown()
 
     local menu = {
         id = 'taxi',
         title = 'Taxi',
         icon = 'taxi',
-        items = {
-            {
-                id = 'taxicancel',
-                title = 'Cancel / stop here',
-                icon = 'phone-slash',
-                type = 'client',
-                event = 'citra-taxi:client:cancelTaxi',
-                shouldClose = true,
-            },
-        }
+        items = {}
     }
 
-    if inCab then
-        table.insert(menu.items, {
+    if taxi then
+        taxi = NetworkGetEntityFromNetworkId(taxi)
+        style = style or Entity(taxi).state.citra_taxi_style
+        menu.items[#menu.items + 1] = {
             id = 'taxidestination',
             title = 'Set destination',
             icon = 'map',
-            type = 'client',
-            event = 'citra-taxi:client:setDestination',
+            type = 'server',
+            event = 'citra-taxi:server:go',
             shouldClose = true,
-        })
-        if isFast then
-            table.insert(menu.items, {
+        }
+        menu.items[#menu.items + 1] = {
+            id = 'taxicancel',
+            title = 'Stop here',
+            icon = 'phone-slash',
+            type = 'client',
+            event = 'citra-taxi:client:cancelTaxi',
+            shouldClose = true,
+        }
+        if style == config.drivingStyles.rush then
+            menu.items[#menu.items + 1] = {
                 id = 'taxisslowdown',
                 title = 'Slow down',
                 icon = 'wind',
-                type = 'client',
-                event = 'citra-taxi:client:speedDown',
+                type = 'server',
+                event = 'citra-taxi:server:speedDown',
                 shouldClose = true,
-            })
+            }
         else
-            table.insert(menu.items, {
+            menu.items[#menu.items + 1] = {
                 id = 'taxispeedup',
                 title = 'Hurry up!',
                 icon = 'wind',
-                type = 'client',
-                event = 'citra-taxi:client:speedUp',
+                type = 'server',
+                event = 'citra-taxi:server:speedUp',
                 shouldClose = true,
-            })
+            }
         end
     else
-        table.insert(menu.items, {
-            id = 'taxicall',
-            title = 'Call a taxi',
-            icon = 'phone',
-            type = 'client',
-            event = 'citra-taxi:client:callTaxi',
-            shouldClose = true,
-        })
+        for carType, data in pairs(config.tiers) do
+            menu.items[#menu.items + 1] = {
+                id = 'calltaxi' .. carType,
+                title = 'Call a ' .. data.label,
+                icon = 'phone',
+                type = 'client',
+                event = 'citra-taxi:client:callTaxi',
+                shouldClose = true,
+                data = data,
+            }
+        end
     end
 
-    menuID = exports['qb-radialmenu']:AddOption(menu)
+    self.menuid = exports['qb-radialmenu']:AddOption(menu)
 end
 
--- Initial setup
-AddEventHandler('playerSpawned', function(_)
-    CreateMenu()
-end)
-
-AddEventHandler('onResourceStart', function(resourceName)
-    if resourceName == GetCurrentResourceName() then
-        CreateMenu()
-    end
-end)
-
-AddEventHandler('onResourceStop', function(resourceName)
-    if resourceName == GetCurrentResourceName() then
-        teardownMenu()
-    end
-end)
+return RadialMenu
