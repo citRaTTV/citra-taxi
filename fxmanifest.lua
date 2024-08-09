@@ -3,17 +3,27 @@ game 'gta5'
 
 author 'citRa'
 description 'Simple taxi script'
-version '1.0.0'
+version '2.0.0'
 lua54 'yes'
 
-server_scripts {
-    'server/*.lua',
-}
-
-client_scripts {
-    'client/*.lua',
+dependencies {
+    'citra_bridge',
 }
 
 shared_scripts {
-    'config.lua',
+    '@ox_lib/init.lua',
+    '@citra_bridge/main.lua',
+}
+
+server_scripts {
+    'server/main.lua',
+}
+
+client_scripts {
+    'client/main.lua',
+}
+
+files {
+    'shared/config.lua',
+    'client/radialmenu.lua',
 }
