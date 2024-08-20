@@ -43,7 +43,7 @@ exports('taxiSlow', taxiSlow)
 lib.addCommand('taxi', {
     help = 'Call / stop a taxi',
 }, function(source, args, _)
-    if Player(source).state.citra_taxi_inTaxi then
+    if Player(source).state.citra_taxi_inTaxi or Player(source).state.citra_taxi_waitingTaxi then
         TriggerClientEvent('citra-taxi:client:cancelTaxi', source)
     else
         TriggerClientEvent('citra-taxi:client:callTaxi', source, config.tiers[args[1]] or config.tiers.cab)
@@ -68,6 +68,7 @@ lib.callback.register('citra-taxi:server:spawnTaxi', function(source, data)
     local taxi = CreateVehicleServerSetter(data.models[math.random(#data.models)], 'automobile', data.startingLocation.x,
         data.startingLocation.y, data.startingLocation.z, data.startingLocation.w)
     while not DoesEntityExist(taxi) do Wait(10) end
+    local taxiNetId = NetworkGetNetworkIdFromEntity(taxi)
     Entity(taxi).state:set('citra_taxi_isTaxi', true, true)
     Entity(taxi).state:set('citra_taxi_dest', data.stoppingLocation, true)
     Entity(taxi).state:set('citra_taxi_style', config.drivingStyles.normal, true)
@@ -82,7 +83,7 @@ lib.callback.register('citra-taxi:server:spawnTaxi', function(source, data)
 
     SetPedIntoVehicle(driver, taxi, -1)
     taxis[#taxis+1] = { taxi = taxi, driver = driver }
-    return NetworkGetNetworkIdFromEntity(taxi)
+    return taxiNetId
 end)
 
 -- Events
@@ -102,7 +103,7 @@ RegisterNetEvent('citra-taxi:server:resetTaxi', function(taxiNetId, data)
     local src = source
     local taxi = NetworkGetEntityFromNetworkId(taxiNetId)
     for i = 1, #taxis do
-        if taxis[i].taxi == taxi then
+        if taxis[i]?.taxi == taxi then
             DeleteEntity(taxis[i].taxi)
             DeleteEntity(taxis[i].driver)
             taxis[i] = nil

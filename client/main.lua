@@ -86,6 +86,7 @@ local function spawnTaxi(data)
     data.startingLocation = getStartingLocation(plyCoords)
     data.stoppingLocation = getStoppingLocation(plyCoords)
     lib.callback('citra-taxi:server:spawnTaxi', false, function(taxiNetId)
+        LocalPlayer.state:set('citra_taxi_waitingTaxi', taxiNetId, true)
         while not NetworkDoesEntityExistWithNetworkId(taxiNetId) do Wait(10) end
         local taxi = NetworkGetEntityFromNetworkId(taxiNetId)
         while not Entity(taxi).state.citra_taxi_driver do Wait(10) end
@@ -124,10 +125,12 @@ local function spawnTaxi(data)
             label = 'Taxi',
         })
 
+        while not Entity(taxi).state.citra_taxi_ready do Wait(100) end
         CreateThread(function()
-            while not LocalPlayer.state.citra_taxi_inTaxi do
+            while not LocalPlayer.state.citra_taxi_inTaxi and Entity(taxi).state.citra_taxi_ready do
                 if not DoesEntityExist(taxi) then
                     bridge.framework:notify("Your taxi took another call. Another one is on the way.", 'primary')
+                    Entity(taxi).state:set('citra_taxi_ready', false, true)
                     TriggerServerEvent('citra-taxi:server:resetTaxi', taxiNetId, data)
                     break
                 end
@@ -135,7 +138,7 @@ local function spawnTaxi(data)
             end
         end)
 
-        while not Entity(taxi).state.citra_taxi_ready do Wait(100) end
+        radialmenu:create(taxi)
         taxiCheckThread(taxi)
     end, data)
 end
@@ -157,7 +160,8 @@ local SBHandler = AddStateBagChangeHandler(nil, nil, function(bagName, key, valu
                 else
                     PlayPedAmbientSpeechNative(driver, 'TAXID_BEGIN_JOURNEY', "SPEECH_PARAMS_FORCE_NORMAL")
                 end
-                radialmenu:create(taxi, value)
+                Wait(10)
+                radialmenu:create(taxi)
             elseif key == 'citra_taxi_dest' then
                 SetVehicleDoorsShut(taxi, false)
                 PlayPedAmbientSpeechNative(driver, 'TAXID_CHANGE_DEST', "SPEECH_PARAMS_FORCE_NORMAL")
@@ -201,8 +205,11 @@ lib.onCache('vehicle', function(veh)
         LocalPlayer.state:set('citra_taxi_inTaxi', nil, true)
     elseif veh and Entity(veh).state.citra_taxi_isTaxi then
         LocalPlayer.state:set('citra_taxi_inTaxi', NetworkGetNetworkIdFromEntity(veh), true)
+        LocalPlayer.state:set('citra_taxi_waitingTaxi', nil, true)
         PlayPedAmbientSpeechNative(NetworkGetEntityFromNetworkId(Entity(veh).state.citra_taxi_driver),
             "TAXID_WHERE_TO", "SPEECH_PARAMS_FORCE_NORMAL")
+        Wait(10)
+        radialmenu:create(veh)
     end
 end)
 
@@ -219,10 +226,15 @@ end)
 RegisterNetEvent('citra-taxi:client:callTaxi', spawnTaxi)
 
 RegisterNetEvent('citra-taxi:client:cancelTaxi', function()
-    if not LocalPlayer.state.citra_taxi_inTaxi then return end
-    local taxi = NetworkGetEntityFromNetworkId(LocalPlayer.state.citra_taxi_inTaxi)
+    if not (LocalPlayer.state.citra_taxi_inTaxi or LocalPlayer.state.citra_taxi_waitingTaxi) then return end
+    local taxi = NetworkGetEntityFromNetworkId(LocalPlayer.state.citra_taxi_inTaxi or LocalPlayer.state.citra_taxi_waitingTaxi)
     if not cache.vehicle then LocalPlayer.state:set('citra_taxi_inTaxi', nil, true) end
-    Entity(taxi).state:set('citra_taxi_dest', getStoppingLocation(GetEntityCoords(cache.ped)), true)
+    if LocalPlayer.state.citra_taxi_inTaxi then
+        Entity(taxi).state:set('citra_taxi_dest', getStoppingLocation(GetEntityCoords(cache.ped)), true)
+    else
+        LocalPlayer.state:set('citra_taxi_waitingTaxi', nil, true)
+        Entity(taxi).state:set('citra_taxi_ready', false, true)
+    end
 end)
 
 RegisterNetEvent('citra-taxi:client:alertPolice', function(taxiNetId)
@@ -256,7 +268,4 @@ AddEventHandler('onResourceStop', function(resourceName)
     radialmenu:teardown()
 end)
 
-AddEventHandler('onResourceStart', function(resourceName)
-    if resourceName ~= GetCurrentResourceName() then return end
-    radialmenu:create()
-end)
+radialmenu:create()
