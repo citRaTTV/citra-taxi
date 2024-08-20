@@ -116,7 +116,7 @@ local function spawnTaxi(data)
         TriggerScreenblurFadeOut(200)
         SetFocusEntity(cache.ped)
 
-        bridge.framework:notify('Taxi is on the way', 'success')
+        bridge.framework:notify({ title = 'Taxi is on the way', icon = 'fas fa-taxi', position = 'center-right' }, 'success', 'success', 4000)
 
         Entity(taxi).state:set('citra_taxi_ready', true, true)
 
@@ -134,7 +134,12 @@ local function spawnTaxi(data)
         CreateThread(function()
             while not LocalPlayer.state.citra_taxi_inTaxi and Entity(taxi).state.citra_taxi_ready do
                 if not DoesEntityExist(taxi) then
-                    bridge.framework:notify("Your taxi took another call. Another one is on the way.", 'primary')
+                    bridge.framework:notify({
+                        title = 'Taxi unavailable',
+                        description = "Your taxi took another call. Another one is on the way.",
+                        icon = 'fas fa-taxi',
+                        position = 'center-right'
+                    }, 'success', 7000)
                     Entity(taxi).state:set('citra_taxi_ready', false, true)
                     TriggerServerEvent('citra-taxi:server:resetTaxi', taxiNetId, data)
                     break
@@ -202,7 +207,12 @@ lib.addKeybind({
                     return
                 end
             end
-            bridge.framework:notify("There are no free seats. You'll have to grab another cab!", 'error', 7000)
+            bridge.framework:notify({
+                title = 'No seats',
+                description = "There are no free seats. You'll have to grab another cab!",
+                position = 'center-right',
+                icon = 'fas fa-taxi'
+            }, 'error', 7000)
         end
     end,
 })
@@ -242,6 +252,11 @@ RegisterNetEvent('citra-taxi:client:cancelTaxi', function()
         LocalPlayer.state:set('citra_taxi_waitingTaxi', nil, true)
         Entity(taxi).state:set('citra_taxi_ready', false, true)
     end
+    bridge.framework:notify({
+        title = 'Taxi Cancelled',
+        icon = 'fas fa-taxi',
+        position = 'center-right',
+    }, 'inform', 4000)
 end)
 
 RegisterNetEvent('citra-taxi:client:alertPolice', function(taxiNetId)
