@@ -116,7 +116,7 @@ local function spawnTaxi(data)
         TriggerScreenblurFadeOut(200)
         SetFocusEntity(cache.ped)
 
-        bridge.framework:notify({ title = 'Taxi is on the way', icon = 'fas fa-taxi', position = 'center-right' }, 'success', 'success', 4000)
+        bridge.framework:notify({ title = 'Taxi is on the way', icon = 'fas fa-taxi', position = 'center-right' }, 'success', 4000)
 
         Entity(taxi).state:set('citra_taxi_ready', true, true)
 
