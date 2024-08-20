@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'citRa'
 description 'Simple taxi script'
-version '2.0.0'
+version '2.0.1'
 lua54 'yes'
 
 dependencies {
