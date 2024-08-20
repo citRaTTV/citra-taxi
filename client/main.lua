@@ -23,7 +23,6 @@ local function getStartingLocation(coords)
             coords.x, coords.y, coords.z, nNode, 0, 4194304, 0)
         nType = getVehNodeType(vector)
         dist = #(coords - vector)
-        lib.print.debug({nType, dist, dist < config.minSpawnDist, nType == 66 or nType == 64})
         if dist >= 200.0 then break end
         Wait(1)
     end
@@ -33,6 +32,8 @@ end
 
 local function wanderOff(veh)
     local driver = NetworkGetEntityFromNetworkId(Entity(veh).state.citra_taxi_driver)
+    ClearPedTasksImmediately(driver)
+    SetPedIntoVehicle(driver, veh, -1)
     SetVehicleDoorsShut(veh, false)
     TaskVehicleDriveWander(driver, veh, 20.0, config.drivingStyles.normal.style)
     SetPedKeepTask(driver, true)
@@ -71,7 +72,6 @@ local function taxiCheckThread(taxi)
                     SetPedKeepTask(driver, true)
                     SetDriverAggressiveness(driver, style.aggressiveness)
                 end
-                lib.print.debug({dest, style, flags, speed, LocalPlayer.state.citra_taxi_inTaxi, Entity(taxi).state.citra_taxi_driver})
                 init = false
             end
             Wait(1000)
@@ -85,6 +85,9 @@ local function spawnTaxi(data)
     local plyCoords = GetEntityCoords(cache.ped)
     data.startingLocation = getStartingLocation(plyCoords)
     data.stoppingLocation = getStoppingLocation(plyCoords)
+    TriggerScreenblurFadeIn(250)
+    Wait(250)
+    SetFocusPosAndVel(data.startingLocation.x, data.startingLocation.y, data.startingLocation.z, 0, 0, 0)
     lib.callback('citra-taxi:server:spawnTaxi', false, function(taxiNetId)
         LocalPlayer.state:set('citra_taxi_waitingTaxi', taxiNetId, true)
         while not NetworkDoesEntityExistWithNetworkId(taxiNetId) do Wait(10) end
@@ -110,6 +113,8 @@ local function spawnTaxi(data)
         SetBlockingOfNonTemporaryEvents(driver, true)
         SetDriverAbility(driver, 1.0)
         SetEntityAsMissionEntity(driver, true, true)
+        TriggerScreenblurFadeOut(200)
+        SetFocusEntity(cache.ped)
 
         bridge.framework:notify('Taxi is on the way', 'success')
 
@@ -133,6 +138,8 @@ local function spawnTaxi(data)
                     Entity(taxi).state:set('citra_taxi_ready', false, true)
                     TriggerServerEvent('citra-taxi:server:resetTaxi', taxiNetId, data)
                     break
+                elseif not IsPedInVehicle(driver, taxi, true) then
+                    SetPedIntoVehicle(driver, taxi, -1)
                 end
                 Wait(1000)
             end
