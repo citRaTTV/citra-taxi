@@ -79,12 +79,25 @@ local function taxiCheckThread(taxi)
     end)
 end
 
-local function spawnTaxi(data)
+-- CrappyGamer added in a second optional parameter, coords, for specifying a dropoff
+local function spawnTaxi(data, coords)
     if LocalPlayer.state.citra_taxi_inTaxi then return end
     data = data.data or data -- Workaround for qb-radialmenu
     local plyCoords = GetEntityCoords(cache.ped)
     data.startingLocation = getStartingLocation(plyCoords)
     data.stoppingLocation = getStoppingLocation(plyCoords)
+
+    if coords ~= 'gps' and coords ~= nil then
+        data.usingGPS = false
+        data.dropLocation = getStoppingLocation(coords)
+    elseif coords == 'gps' then
+        data.dropLocation = nil
+        data.usingGPS = true
+    else
+        data.usingGPS = false
+        data.dropLocation = nil
+    end
+
     TriggerScreenblurFadeIn(250)
     Wait(250)
     SetFocusPosAndVel(data.startingLocation.x, data.startingLocation.y, data.startingLocation.z, 0, 0, 0)
@@ -152,7 +165,7 @@ local function spawnTaxi(data)
 
         radialmenu:create(taxi)
         taxiCheckThread(taxi)
-    end, data)
+    end, data, coords)
 end
 
 -- Statebag Handler
@@ -282,6 +295,10 @@ RegisterNetEvent('citra-taxi:client:alertPolice', function(taxiNetId)
     })
 
     if blip then blip = blip:delete() end
+end)
+
+AddEventHandler('onResourceStart', function(resourceName)
+    if resourceName ~= GetCurrentResourceName() then return end
 end)
 
 AddEventHandler('onResourceStop', function(resourceName)

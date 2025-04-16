@@ -4,11 +4,15 @@ local taxis = {}
 -- Functions
 local function taxiGo(source)
     if Player(source).state.citra_taxi_inTaxi then
-        lib.callback('citra-taxi:client:getWaypoint', source, function(waypoint)
-            if not waypoint then return end
-            local taxi = NetworkGetEntityFromNetworkId(Player(source).state.citra_taxi_inTaxi)
-            Entity(taxi).state:set('citra_taxi_dest', waypoint, true)
-        end)
+        local taxi = NetworkGetEntityFromNetworkId(Player(source).state.citra_taxi_inTaxi)
+        if Entity(taxi).state.usingGPS then
+            lib.callback('citra-taxi:client:getWaypoint', source, function(waypoint)
+                if not waypoint then return end
+                Entity(taxi).state:set('citra_taxi_dest', waypoint, true)
+            end)
+        else
+            Entity(taxi).state:set('citra_taxi_dest', Entity(taxi).state.citra_taxi_pickup, true)
+        end
     end
 end
 
@@ -46,8 +50,13 @@ lib.addCommand('taxi', {
     if Player(source).state.citra_taxi_inTaxi or Player(source).state.citra_taxi_waitingTaxi then
         TriggerClientEvent('citra-taxi:client:cancelTaxi', source)
     else
-        TriggerClientEvent('citra-taxi:client:callTaxi', source, config.tiers[args[1]] or config.tiers.cab)
+        TriggerClientEvent('citra-taxi:client:callTaxi', source, config.tiers[args[1]] or config.tiers.cab, nil)
     end
+end)
+
+-- Added by CrappyGamer to support predefined destinations
+RegisterNetEvent('citra-taxi:server:callTaxi', function(params) 
+    TriggerClientEvent('citra-taxi:client:callTaxi', source, config.tiers.cab, params)
 end)
 
 lib.addCommand('taxigo', {
@@ -74,6 +83,8 @@ lib.callback.register('citra-taxi:server:spawnTaxi', function(source, data)
     Entity(taxi).state:set('citra_taxi_style', config.drivingStyles.normal, true)
     Entity(taxi).state:set('citra_taxi_fare', data.fare)
     Entity(taxi).state:set('ignoreLocks', true, true)
+    Entity(taxi).state:set('usingGPS', data.usingGPS, true)
+    Entity(taxi).state:set('citra_taxi_pickup', data.dropLocation, true)
 
     local driver = CreatePed(1, data.driver.model, data.startingLocation.x, data.startingLocation.y,
         data.startingLocation.z, data.startingLocation.w, true, true)
